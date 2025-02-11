@@ -10,6 +10,7 @@ env:
   GCP_SA_KEY: ${{ secrets.GCP_SA_KEY }}
   IMAGE_NAME: tikninja-app-dev
   REGION: ${{ secrets.GCP_LOCATION }}
+  REGISTRY_REPO_NAME: tikninja-app-dev
   REGISTRY_NAME: ${{ secrets.GCP_LOCATION }}-docker.pkg.dev
 
 jobs:
@@ -32,14 +33,14 @@ jobs:
 
       - name: Build and Push Docker image
         run: |
-          IMAGE_URI=$REGISTRY_NAME/$PROJECT_ID/$IMAGE_NAME:$GITHUB_SHA
+          IMAGE_URI=$REGISTRY_NAME/$PROJECT_ID/$REGISTRY_REPO_NAME/$IMAGE_NAME:$GITHUB_SHA
           docker build -t $IMAGE_URI .
-          docker tag $IMAGE_URI $REGISTRY_NAME/$PROJECT_ID/$IMAGE_NAME:latest
-          docker push $IMAGE_URI
+          docker tag $IMAGE_URI $REGISTRY_NAME/$PROJECT_ID/$REGISTRY_REPO_NAME/$IMAGE_NAME:latest
+          docker push $REGISTRY_NAME/$PROJECT_ID/$REGISTRY_REPO_NAME/$IMAGE_NAME:latest
 
       - name: Deploy to Cloud Run
         run: |
-          IMAGE_URI=$REGISTRY_NAME/$PROJECT_ID/$IMAGE_NAME:latest
+          IMAGE_URI=$REGISTRY_NAME/$PROJECT_ID/$REGISTRY_REPO_NAME/$IMAGE_NAME:latest
           gcloud run deploy ${{ env.IMAGE_NAME }} \
             --image $IMAGE_URI \
             --region ${{ env.REGION }} \
