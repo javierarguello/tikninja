@@ -50,7 +50,7 @@ jobs:
             --image $IMAGE_URI \
             --region ${{ env.REGION }} \
             --platform managed \
-            --allow-unauthenticated 
+            --allow-unauthenticated \
             --port 3000 \
             --memory 512Mi \
             --cpu 1 \
