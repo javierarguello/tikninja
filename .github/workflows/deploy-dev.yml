@@ -36,6 +36,15 @@ jobs:
       - name: Configure Docker for GCR
         run: gcloud auth configure-docker ${{ env.REGISTRY_NAME }} --quiet
 
+      - name: Create .env file
+        run: |
+          rm -f .env  # Remove .env if it exists
+          echo "GCP_PROJECT_ID=${{ env.PROJECT_ID }}" >> .env
+          echo "GCP_REGION=${{ env.REGION }}" >> .env
+          echo "VIDEO_PROCESSING_TOPIC=${{ env.VIDEO_PROCESSING_TOPIC }}" >> .env
+          echo "OPENAI_API_KEY=${{ env.OPENAI_API_KEY }}" >> .env
+          echo "PEXELS_API_KEY=${{ env.PEXELS_API_KEY }}" >> .env
+
       - name: Build and Push Docker image
         run: |
           IMAGE_URI=$REGISTRY_NAME/$PROJECT_ID/$REGISTRY_REPO_NAME/$IMAGE_NAME:$GITHUB_SHA
