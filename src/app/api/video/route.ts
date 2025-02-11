@@ -5,6 +5,7 @@ import { PubSub } from '@google-cloud/pubsub';
 
 export async function POST(request: Request) {
   try {
+    console.log('Creating video script...', process.env.VIDEO_PROCESSING_TOPIC);
     // Initialize Firebase Admin if not already initialized
     initializeFirebaseAdmin();
     const db = getFirestore();
