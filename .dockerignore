@@ -1,0 +1,7 @@
+.git
+.gitignore
+.next
+.env
+node_modules
+ci
+README.md 
