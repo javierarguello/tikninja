@@ -177,7 +177,7 @@ export class VideoScriptGeneratorService {
   ): Promise<IVideoScript> {
     const processedSegments: IVideoScriptSegment[] = [];
     for (const segment of script.segments!) {
-      console.log('adding audio to segment video', segment.localVideoPath);
+      console.log('adding audio to segment video', script.scriptId, segment.index);
       const enrichedSegment = await this.addAudioToVideoSegment(
         script,
         segment
@@ -195,7 +195,7 @@ export class VideoScriptGeneratorService {
   ): Promise<IVideoScript> {
     const processedSegments: IVideoScriptSegment[] = [];
     for (const segment of script.segments!) {
-      console.log('synthesizing segment audio', segment.subtitles);
+      console.log('synthesizing segment audio', script.scriptId, segment.index);
       const synthesizedSegment = await this.synthesizeSegmentAudio(
         script.scriptId,
         segment
@@ -211,7 +211,7 @@ export class VideoScriptGeneratorService {
   async downloadAllSegmentVideos(script: IVideoScript): Promise<IVideoScript> {
     const processedSegments: IVideoScriptSegment[] = [];
     for (const segment of script.segments!) {
-      console.log('downloading segment video', segment.videoUrl);
+      console.log('downloading segment video', script.scriptId, segment.index);
       const enrichedSegment = await this.downloadSegmentVideo(script, segment);
       processedSegments.push(enrichedSegment);
     }
@@ -224,7 +224,7 @@ export class VideoScriptGeneratorService {
   async enrichScriptWithVideos(script: IVideoScript): Promise<IVideoScript> {
     const enrichedSegments: IVideoScriptSegment[] = [];
     for (const segment of script.segments!) {
-      console.log('enriching segment with video', segment.subtitles);
+      console.log('enriching segment with video', script.scriptId, segment.index);
       const enrichedSegment = await this.enrichSegmentWithVideo(segment);
       enrichedSegments.push(enrichedSegment);
     }

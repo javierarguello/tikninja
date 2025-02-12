@@ -25,7 +25,21 @@ export class VideoScriptService {
 
     if (script.status === 'pending') {
       await this.generateScript(script);
+    } else if (script.status === 'generated') {
+      await this.enrichScriptWithVideos(script);
     }
+  }
+
+  async enrichScriptWithVideos(script: IVideoScript): Promise<void> {
+    const videoScriptGeneratorService = new VideoScriptGeneratorService();
+    const generatedScript =
+      await videoScriptGeneratorService.enrichScriptWithVideos(script);
+
+    await this._updateVideoScriptAndNotify({
+      ...script,
+      segments: generatedScript.segments,
+      status: 'video-enriched',
+    });
   }
 
   async generateScript(script: IVideoScript): Promise<void> {
@@ -36,10 +50,18 @@ export class VideoScriptService {
         description: script.description,
       });
 
-    await this.db.updateVideoScript(script.scriptId, {
+    await this._updateVideoScriptAndNotify({
       ...script,
       segments: generatedScript.segments,
       status: 'generated',
     });
+  }
+
+  private async _updateVideoScriptAndNotify(
+    script: IVideoScript
+  ): Promise<void> {
+    await this.db.updateVideoScript(script.scriptId, script);
+
+    this.pubSubService.publishVideoScriptToPubSub(script);
   }
 }
