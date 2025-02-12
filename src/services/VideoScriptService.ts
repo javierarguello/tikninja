@@ -47,12 +47,13 @@ export class VideoScriptService {
 
       for (const segment of downloadedScript.segments!) {
         const cloudStorage = new CloudStorage();
-        const csVideoUrl = await cloudStorage.uploadFile(
+        const { fileName } = await cloudStorage.uploadFile(
           process.env.CS_BUCKET_NAME!,
-          segment.localVideoPath!
+          segment.localVideoPath!,
+          `${script.scriptId}/${segment.index}.mp4`
         );
 
-        segment.csVideoUrl = csVideoUrl;
+        segment.csVideoUrl = fileName;
         segment.localVideoPath = undefined;
       }
 
@@ -77,13 +78,13 @@ export class VideoScriptService {
 
     const cloudStorage = new CloudStorage();
     for (const segment of synthesizedScript.segments!) {
-      const csAudioUrl = await cloudStorage.uploadBuffer(
+      const { fileName } = await cloudStorage.uploadBuffer(
         process.env.CS_BUCKET_NAME!,
         segment.audioContent!,
         `${script.scriptId}/${segment.index}.mp3`
       );
 
-      segment.csAudioUrl = csAudioUrl;
+      segment.csAudioUrl = fileName;
       segment.audioContent = undefined;
     }
 

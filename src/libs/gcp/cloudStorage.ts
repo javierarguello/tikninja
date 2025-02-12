@@ -20,7 +20,7 @@ export class CloudStorage {
     bucketName: string,
     filePath: string,
     destination?: string
-  ): Promise<string> {
+  ): Promise<{ publicUrl: string; fileName: string }> {
     try {
       const bucket = this.storage.bucket(bucketName);
       const fileName = destination || path.basename(filePath);
@@ -29,7 +29,10 @@ export class CloudStorage {
         destination: fileName,
       });
 
-      return file.publicUrl();
+      return {
+        publicUrl: file.publicUrl(),
+        fileName: path.join(bucketName, fileName),
+      };
     } catch (error: unknown) {
       if (error instanceof Error) {
         throw new Error(`Failed to upload file: ${error.message}`);
@@ -49,14 +52,17 @@ export class CloudStorage {
     bucketName: string,
     buffer: Buffer,
     destination: string
-  ): Promise<string> {
+  ): Promise<{ publicUrl: string; fileName: string }> {
     try {
       const bucket = this.storage.bucket(bucketName);
       const file = bucket.file(destination);
 
       await file.save(buffer);
 
-      return file.publicUrl();
+      return {
+        publicUrl: file.publicUrl(),
+        fileName: path.join(bucketName, destination),
+      };
     } catch (error: unknown) {
       if (error instanceof Error) {
         throw new Error(`Failed to upload buffer: ${error.message}`);
