@@ -207,7 +207,7 @@ export class FFmpegProcessor {
       '-movflags',
       '+faststart',
       '-vf',
-      `subtitles=${tempSubtitlePath}:fontsdir=/fonts`,
+      `subtitles=${tempSubtitlePath}:fontsdir=/ffmpeg-fonts`,
       outputVideoFilename,
     ];
 

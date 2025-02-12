@@ -9,9 +9,7 @@ RUN apk add --no-cache libc6-compat
 
 WORKDIR /app
 
-# Install dependencies based on the preferred package manager
 COPY package.json yarn.lock* package-lock.json* pnpm-lock.yaml* .npmrc* ./
-# COPY package.json .npmrc* ./
 RUN npm ci
 
 # 2. Rebuild the source code only when needed
@@ -20,7 +18,6 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 COPY .env .env
-
 ENV NEXT_TELEMETRY_DISABLED 1
 
 RUN npm run build
@@ -36,11 +33,11 @@ RUN addgroup -g 1001 -S nodejs
 RUN adduser -S nextjs -u 1001
 
 COPY --from=builder /app/public ./public
+COPY --from=builder /app/ffmpeg_fonts ./ffmpeg_fonts
 
 # Automatically leverage output traces to reduce image size
 # https://nextjs.org/docs/advanced-features/output-file-tracing
 COPY --from=builder --chown=nextjs:nodejs /app/.env ./.env
-COPY --from=builder --chown=nextjs:nodejs /app/fonts ./fonts
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
