@@ -5,9 +5,10 @@ export interface IVideoScript {
   description?: string;
   createdAt?: Date;
   updatedAt?: Date;
-  segments: IVideoScriptSegment[];
+  segments?: IVideoScriptSegment[];
   tmpPath?: string;
   producedVideoPath?: string;
+  status?: 'pending' | 'processing' | 'completed' | 'failed';
 }
 
 export interface IVideoScriptSegment {

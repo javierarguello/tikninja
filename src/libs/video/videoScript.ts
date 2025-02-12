@@ -154,8 +154,8 @@ export class VideoScriptService {
       `${script.scriptId}-produced.mp4`
     );
     await ffmpegProcessor.mergeVideos({
-      videoUrls: script.segments
-        .sort((a, b) => a.index - b.index)
+      videoUrls: script
+        .segments!.sort((a, b) => a.index - b.index)
         .map((s) => s.localVideoPath!),
       outputFile: localOutputVideoPath,
       transitionEffect: 'fade',
@@ -176,7 +176,7 @@ export class VideoScriptService {
     script: IVideoScript
   ): Promise<IVideoScript> {
     const processedSegments: IVideoScriptSegment[] = [];
-    for (const segment of script.segments) {
+    for (const segment of script.segments!) {
       console.log('adding audio to segment video', segment.localVideoPath);
       const enrichedSegment = await this.addAudioToVideoSegment(
         script,
@@ -194,7 +194,7 @@ export class VideoScriptService {
     script: IVideoScript
   ): Promise<IVideoScript> {
     const processedSegments: IVideoScriptSegment[] = [];
-    for (const segment of script.segments) {
+    for (const segment of script.segments!) {
       console.log('synthesizing segment audio', segment.subtitles);
       const synthesizedSegment = await this.synthesizeSegmentAudio(
         script.scriptId,
@@ -210,7 +210,7 @@ export class VideoScriptService {
 
   async downloadAllSegmentVideos(script: IVideoScript): Promise<IVideoScript> {
     const processedSegments: IVideoScriptSegment[] = [];
-    for (const segment of script.segments) {
+    for (const segment of script.segments!) {
       console.log('downloading segment video', segment.videoUrl);
       const enrichedSegment = await this.downloadSegmentVideo(script, segment);
       processedSegments.push(enrichedSegment);
@@ -223,7 +223,7 @@ export class VideoScriptService {
 
   async enrichScriptWithVideos(script: IVideoScript): Promise<IVideoScript> {
     const enrichedSegments: IVideoScriptSegment[] = [];
-    for (const segment of script.segments) {
+    for (const segment of script.segments!) {
       console.log('enriching segment with video', segment.subtitles);
       const enrichedSegment = await this.enrichSegmentWithVideo(segment);
       enrichedSegments.push(enrichedSegment);

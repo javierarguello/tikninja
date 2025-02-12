@@ -1,17 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { PubSubService } from '@/services/PubSubService';
 
 export async function POST(req: NextRequest) {
   try {
     // Pub/Sub messages are sent as base64-encoded strings
-    const body = await req.json();
+    const body = (await req.json()) as { message: { data: string } };
     const message = body.message;
 
     // Decode the Pub/Sub message
-    const data = message.data
-      ? Buffer.from(message.data, 'base64').toString()
-      : null;
-
-    console.log('Received Pub/Sub message:', data);
+    const data = await PubSubService.deserializeMessage<{ scriptId: string }>(
+      message
+    );
+    console.log('Received Pub/Sub message:', body.message, data);
 
     // Add your message processing logic here
 
