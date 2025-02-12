@@ -8,7 +8,7 @@ export interface IVideoScript {
   segments?: IVideoScriptSegment[];
   tmpPath?: string;
   producedVideoPath?: string;
-  status?: 'pending' | 'processing' | 'completed' | 'failed';
+  status?: 'pending' | 'generated' | 'video-enriched' | 'audio-enriched';
 }
 
 export interface IVideoScriptSegment {

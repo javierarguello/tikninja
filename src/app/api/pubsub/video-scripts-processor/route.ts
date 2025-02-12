@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { PubSubService } from '@/services/PubSubService';
+import { VideoScriptService } from '@/services/VideoScriptService';
 
 export async function POST(req: NextRequest) {
   try {
@@ -11,11 +12,15 @@ export async function POST(req: NextRequest) {
     const data = await PubSubService.deserializeMessage<{ scriptId: string }>(
       message
     );
-    console.log('Received Pub/Sub message:', body.message, data);
+    if (!data || !data.scriptId) {
+      throw new Error('No data found in Pub/Sub message');
+    }
 
-    // Add your message processing logic here
+    console.log('Processing video script:', data.scriptId);
 
-    // Return success response
+    const videoScriptService = new VideoScriptService();
+    await videoScriptService.processVideoScript(data.scriptId);
+
     return NextResponse.json({ success: true }, { status: 200 });
   } catch (error) {
     console.error('Error processing Pub/Sub message:', error);

@@ -8,6 +8,11 @@ export type ICreatedVideoScript = Omit<
   'scriptId' | 'createdAt' | 'updatedAt'
 >;
 
+export type IUpdateVideoScript = Omit<
+  IVideoScript,
+  'scriptId' | 'createdAt' | 'updatedAt'
+>;
+
 export class DatabaseService {
   private db: FirebaseFirestore.Firestore;
 
@@ -16,11 +21,20 @@ export class DatabaseService {
     this.db = getFirestore();
   }
 
-  /**
-   * Creates a new video script in the database
-   * @param script The video script data to create
-   * @returns Promise with the created script ID
-   */
+  async updateVideoScript(scriptId: string, script: IUpdateVideoScript) {
+    const docRef = this.db.collection('video-scripts').doc(scriptId);
+    await docRef.update(script);
+  }
+
+  async getVideoScriptById(scriptId: string): Promise<IVideoScript | null> {
+    const docRef = this.db.collection('video-scripts').doc(scriptId);
+    const doc = await docRef.get();
+    if (!doc.exists) {
+      return null;
+    }
+    return doc.data() as IVideoScript;
+  }
+
   async createVideoScript(script: ICreatedVideoScript): Promise<IVideoScript> {
     try {
       const now = new Date();

@@ -8,7 +8,7 @@ import { GcpTextToSpeech } from './gcpTts';
 import { OpenAIService } from './openai';
 import { PexelsService } from './pexels';
 
-export class VideoScriptService {
+export class VideoScriptGeneratorService {
   async generateVideoScript(options: {
     title: string;
     description?: string;
