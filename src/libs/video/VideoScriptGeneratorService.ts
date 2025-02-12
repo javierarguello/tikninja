@@ -25,21 +25,24 @@ export class VideoScriptGeneratorService {
     title: string;
     description?: string;
   }): Promise<IVideoScript> {
-    let videoScript = await this.generateVideoScript(options);
+    const videoScript = await this.generateVideoScript(options);
 
-    videoScript = await this._setupTmpDir(videoScript);
+    const tmpPath = await this.setupTmpDir(videoScript);
 
     const enrichedVideoScript = await this.enrichScriptWithVideos(videoScript);
     const downloadedVideoScript = await this.downloadAllSegmentVideos(
+      tmpPath,
       enrichedVideoScript
     );
     const synthesizedVideoScript = await this.synthesizeAllSegmentAudios(
       downloadedVideoScript
     );
     const videoScriptWithAudio = await this.addAudioToAllSegmentVideos(
+      tmpPath,
       synthesizedVideoScript
     );
     const mergedVideoScript = await this.mergeSegmentVideos(
+      tmpPath,
       videoScriptWithAudio
     );
     return mergedVideoScript;
@@ -59,6 +62,7 @@ export class VideoScriptGeneratorService {
   }
 
   async addAudioToVideoSegment(
+    tmpPath: string,
     script: IVideoScript,
     segment: IVideoScriptSegment
   ): Promise<IVideoScriptSegment> {
@@ -70,7 +74,7 @@ export class VideoScriptGeneratorService {
     await ffmpegProcessor.embedSubtitleTrack({
       jobId: script.scriptId,
       segmentIndex: segment.index,
-      tmpPath: script.tmpPath!,
+      tmpPath: tmpPath,
       inputVideoFilename: segment.localVideoPath!,
       assContent: segment.assContent!,
       outputVideoFilename: localOutputVideoPath!,
@@ -82,15 +86,17 @@ export class VideoScriptGeneratorService {
   }
 
   async downloadSegmentVideo(
+    tmpPath: string,
     script: IVideoScript,
     segment: IVideoScriptSegment
   ): Promise<IVideoScriptSegment> {
     const fileDownloader = new FileDownloader();
     const tempFilePath = await fileDownloader.downloadToTemp(
-      script.tmpPath!,
+      tmpPath,
       segment.videoUrl!,
       `${segment.index}`
     );
+
     return {
       ...segment,
       localVideoPath: tempFilePath,
@@ -147,10 +153,13 @@ export class VideoScriptGeneratorService {
     }
   }
 
-  async mergeSegmentVideos(script: IVideoScript): Promise<IVideoScript> {
+  async mergeSegmentVideos(
+    tmpPath: string,
+    script: IVideoScript
+  ): Promise<IVideoScript> {
     const ffmpegProcessor = new FFmpegProcessor();
     const localOutputVideoPath = path.join(
-      script.tmpPath!,
+      tmpPath,
       `${script.scriptId}-produced.mp4`
     );
     await ffmpegProcessor.mergeVideos({
@@ -173,12 +182,18 @@ export class VideoScriptGeneratorService {
   }
 
   async addAudioToAllSegmentVideos(
+    tmpPath: string,
     script: IVideoScript
   ): Promise<IVideoScript> {
     const processedSegments: IVideoScriptSegment[] = [];
     for (const segment of script.segments!) {
-      console.log('adding audio to segment video', script.scriptId, segment.index);
+      console.log(
+        'adding audio to segment video',
+        script.scriptId,
+        segment.index
+      );
       const enrichedSegment = await this.addAudioToVideoSegment(
+        tmpPath,
         script,
         segment
       );
@@ -208,12 +223,19 @@ export class VideoScriptGeneratorService {
     };
   }
 
-  async downloadAllSegmentVideos(script: IVideoScript): Promise<IVideoScript> {
+  async downloadAllSegmentVideos(
+    tmpPath: string,
+    script: IVideoScript
+  ): Promise<IVideoScript> {
     const processedSegments: IVideoScriptSegment[] = [];
     for (const segment of script.segments!) {
       console.log('downloading segment video', script.scriptId, segment.index);
-      const enrichedSegment = await this.downloadSegmentVideo(script, segment);
-      processedSegments.push(enrichedSegment);
+      const processedSegment = await this.downloadSegmentVideo(
+        tmpPath,
+        script,
+        segment
+      );
+      processedSegments.push(processedSegment);
     }
     return {
       ...script,
@@ -224,7 +246,11 @@ export class VideoScriptGeneratorService {
   async enrichScriptWithVideos(script: IVideoScript): Promise<IVideoScript> {
     const enrichedSegments: IVideoScriptSegment[] = [];
     for (const segment of script.segments!) {
-      console.log('enriching segment with video', script.scriptId, segment.index);
+      console.log(
+        'enriching segment with video',
+        script.scriptId,
+        segment.index
+      );
       const enrichedSegment = await this.enrichSegmentWithVideo(segment);
       enrichedSegments.push(enrichedSegment);
     }
@@ -234,12 +260,9 @@ export class VideoScriptGeneratorService {
     };
   }
 
-  private async _setupTmpDir(script: IVideoScript): Promise<IVideoScript> {
+  async setupTmpDir(script: IVideoScript): Promise<string> {
     const tmpDir = path.join(os.tmpdir(), script.scriptId);
     await fs.promises.mkdir(tmpDir, { recursive: true });
-    return {
-      ...script,
-      tmpPath: tmpDir,
-    };
+    return tmpDir;
   }
 }

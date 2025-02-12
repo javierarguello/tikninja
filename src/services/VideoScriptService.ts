@@ -3,6 +3,7 @@ import { ICreatedVideoScript } from './DatabaseService';
 import { DatabaseService } from './DatabaseService';
 import { PubSubService } from './PubSubService';
 import { VideoScriptGeneratorService } from '../libs/video/VideoScriptGeneratorService';
+import { CloudStorage } from '../libs/gcp/cloudStorage';
 
 export class VideoScriptService {
   constructor(
@@ -27,7 +28,62 @@ export class VideoScriptService {
       await this.generateScript(script);
     } else if (script.status === 'generated') {
       await this.enrichScriptWithVideos(script);
+    } else if (script.status === 'video-enriched') {
+      await this.synthesizeAudioForAllSegments(script);
+    } else if (script.status === 'audio-synthesized') {
+      await this.downloadAllSegmentVideos(script);
     }
+  }
+
+  async downloadAllSegmentVideos(script: IVideoScript): Promise<void> {
+    const videoScriptGeneratorService = new VideoScriptGeneratorService();
+    const tmpPath = await videoScriptGeneratorService.setupTmpDir(script);
+    const downloadedScript =
+      await videoScriptGeneratorService.downloadAllSegmentVideos(
+        tmpPath,
+        script
+      );
+
+    for (const segment of downloadedScript.segments!) {
+      const cloudStorage = new CloudStorage();
+      const csVideoUrl = await cloudStorage.uploadFile(
+        process.env.CS_BUCKET_NAME!,
+        segment.localVideoPath!
+      );
+
+      segment.csVideoUrl = csVideoUrl;
+      segment.localVideoPath = undefined;
+    }
+
+    await this._updateVideoScriptAndNotify({
+      ...script,
+      segments: downloadedScript.segments,
+      status: 'videos-downloaded',
+    });
+  }
+
+  async synthesizeAudioForAllSegments(script: IVideoScript): Promise<void> {
+    const videoScriptGeneratorService = new VideoScriptGeneratorService();
+    const synthesizedScript =
+      await videoScriptGeneratorService.synthesizeAllSegmentAudios(script);
+
+    const cloudStorage = new CloudStorage();
+    for (const segment of synthesizedScript.segments!) {
+      const csAudioUrl = await cloudStorage.uploadBuffer(
+        process.env.CS_BUCKET_NAME!,
+        segment.audioContent!,
+        `${script.scriptId}/${segment.index}.mp3`
+      );
+
+      segment.csAudioUrl = csAudioUrl;
+      segment.audioContent = undefined;
+    }
+
+    await this._updateVideoScriptAndNotify({
+      ...script,
+      segments: synthesizedScript.segments,
+      status: 'audio-synthesized',
+    });
   }
 
   async enrichScriptWithVideos(script: IVideoScript): Promise<void> {

@@ -44,6 +44,7 @@ jobs:
           echo "VIDEO_PROCESSING_TOPIC=${{ vars.VIDEO_PROCESSING_TOPIC }}" >> .env
           echo "OPENAI_API_KEY=${{ vars.OPENAI_API_KEY }}" >> .env
           echo "PEXELS_API_KEY=${{ vars.PEXELS_API_KEY }}" >> .env
+          echo "CS_BUCKET_NAME=${{ vars.CS_BUCKET_NAME }}" >> .env
 
       - name: Build and Push Docker image
         run: |

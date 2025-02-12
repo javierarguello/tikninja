@@ -9,6 +9,7 @@ export class FileDownloader {
      * @returns Promise<string> The path where the file was saved
      */
     public async downloadToTemp(rootFolder: string, fileUrl: string, filePrefix?: string): Promise<string> {
+        console.log('Downloading file to temp:', rootFolder, fileUrl, filePrefix);
         try {
             // Create a temporary filename using the original filename
             const originalFilename = path.basename(fileUrl);

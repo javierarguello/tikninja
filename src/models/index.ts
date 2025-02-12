@@ -6,9 +6,13 @@ export interface IVideoScript {
   createdAt?: Date;
   updatedAt?: Date;
   segments?: IVideoScriptSegment[];
-  tmpPath?: string;
   producedVideoPath?: string;
-  status?: 'pending' | 'generated' | 'video-enriched' | 'audio-enriched';
+  status?:
+    | 'pending'
+    | 'generated'
+    | 'video-enriched'
+    | 'audio-synthesized'
+    | 'videos-downloaded';
 }
 
 export interface IVideoScriptSegment {
@@ -19,5 +23,7 @@ export interface IVideoScriptSegment {
   localVideoPath?: string;
   videoThumbnailUrl?: string;
   audioContent?: Buffer;
+  csAudioUrl?: string;
+  csVideoUrl?: string;
   assContent?: string;
 }
