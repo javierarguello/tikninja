@@ -21,6 +21,8 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 COPY .env .env
 
+ENV NEXT_TELEMETRY_DISABLED 1
+
 RUN npm run build
 
 # 3. Production image, copy all the files and run next
@@ -42,8 +44,6 @@ COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
 USER nextjs
-
-ENV NEXT_TELEMETRY_DISABLED 1
 
 EXPOSE 3000
 

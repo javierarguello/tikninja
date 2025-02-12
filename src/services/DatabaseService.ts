@@ -32,7 +32,7 @@ export class DatabaseService {
     if (!doc.exists) {
       return null;
     }
-    return doc.data() as IVideoScript;
+    return { ...(doc.data() as IVideoScript), scriptId: doc.id };
   }
 
   async createVideoScript(script: ICreatedVideoScript): Promise<IVideoScript> {
