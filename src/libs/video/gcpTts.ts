@@ -118,7 +118,7 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text\
       const text = groupOfWords?.words
         .map((word, i) =>
           i === lastWordIndexInGroup
-            ? `{\\1c&H25CA1D&\\fs42}${word}{\\1c\\fs42}`
+            ? `{\\1c&H25CA1D&\\fs42}${word}{\\1c\\fs38}`
             : word
         )
         .join(' ');
