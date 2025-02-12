@@ -65,6 +65,7 @@ jobs:
             --cpu 1 \
             --max-instances 1 \
             --service-account ${{ secrets.GCP_PROJECT_SA_NAME }}
+             --revision-limit 2
 
       - name: Set IAM Policy Binding
         run: |
