@@ -25,6 +25,7 @@ RUN npm run build
 # 3. Production image, copy all the files and run next
 FROM base AS runner
 WORKDIR /app
+RUN apk add --no-cache fontconfig
 RUN apk add --no-cache ffmpeg
 
 ENV NODE_ENV=production
