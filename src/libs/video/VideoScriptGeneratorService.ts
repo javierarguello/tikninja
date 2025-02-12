@@ -56,7 +56,7 @@ export class VideoScriptGeneratorService {
     const audioContent = await gcpTts.synthesizeSpeech(segment.subtitles);
     return {
       ...segment,
-      audioContent: audioContent.audioContent,
+      _audioContent: audioContent.audioContent,
       assContent: audioContent.assContent,
     };
   }
@@ -67,7 +67,7 @@ export class VideoScriptGeneratorService {
     segment: IVideoScriptSegment
   ): Promise<IVideoScriptSegment> {
     const ffmpegProcessor = new FFmpegProcessor();
-    const localOutputVideoPath = segment.localVideoPath!.replace(
+    const localOutputVideoPath = segment._localVideoPath!.replace(
       '.mp4',
       '-with-audio.mp4'
     );
@@ -75,14 +75,15 @@ export class VideoScriptGeneratorService {
       jobId: script.scriptId,
       segmentIndex: segment.index,
       tmpPath: tmpPath,
-      inputVideoFilename: segment.localVideoPath!,
+      inputVideoFilename: segment._localVideoPath!,
       assContent: segment.assContent!,
       outputVideoFilename: localOutputVideoPath!,
-      audioContent: segment.audioContent!,
+      audioContent: segment._audioContent!,
+      localAudioPath: segment._localAudioPath!,
     });
 
     // await fs.promises.unlink(segment.localVideoPath!);
-    return { ...segment, localVideoPath: localOutputVideoPath };
+    return { ...segment, _localVideoPath: localOutputVideoPath };
   }
 
   async downloadSegmentVideo(
@@ -99,7 +100,7 @@ export class VideoScriptGeneratorService {
 
     return {
       ...segment,
-      localVideoPath: tempFilePath,
+      _localVideoPath: tempFilePath,
     };
   }
 
@@ -165,7 +166,7 @@ export class VideoScriptGeneratorService {
     await ffmpegProcessor.mergeVideos({
       videoUrls: script
         .segments!.sort((a, b) => a.index - b.index)
-        .map((s) => s.localVideoPath!),
+        .map((s) => s._localVideoPath!),
       outputFile: localOutputVideoPath,
       transitionEffect: 'fade',
       transitionDuration: 1,

@@ -32,6 +32,66 @@ export class VideoScriptService {
       await this.synthesizeAudioForAllSegments(script);
     } else if (script.status === 'audio-synthesized') {
       await this.downloadAllSegmentVideos(script);
+    } else if (script.status === 'videos-downloaded') {
+      await this.addAudioToAllSegmentVideos(script);
+    }
+  }
+
+  async addAudioToAllSegmentVideos(script: IVideoScript): Promise<void> {
+    const videoScriptGeneratorService = new VideoScriptGeneratorService();
+    const tmpPath = await videoScriptGeneratorService.setupTmpDir(script);
+    try {
+      const cloudStorage = new CloudStorage();
+
+      for (const segment of script.segments!) {
+        const localAudioPath = await cloudStorage.downloadFile(
+          process.env.CS_BUCKET_NAME!,
+          `${script.scriptId}/${segment.index}.mp3`,
+          tmpPath
+        );
+
+        segment._localAudioPath = localAudioPath;
+        segment._audioContent = undefined;
+
+        const localVideoPath = await cloudStorage.downloadFile(
+          process.env.CS_BUCKET_NAME!,
+          `${script.scriptId}/${segment.index}.mp4`,
+          tmpPath
+        );
+
+        segment._localVideoPath = localVideoPath;
+      }
+
+      const scriptWithAudio =
+        await videoScriptGeneratorService.addAudioToAllSegmentVideos(
+          tmpPath,
+          script
+        );
+
+      for (const segment of scriptWithAudio.segments!) {
+        const cloudStorage = new CloudStorage();
+        const { fileName } = await cloudStorage.uploadFile(
+          process.env.CS_BUCKET_NAME!,
+          segment._localVideoPath!,
+          `${script.scriptId}/${segment.index}.mp4`
+        );
+
+        segment.csVideoUrl = fileName;
+        segment._localAudioPath = undefined;
+        segment._localVideoPath = undefined;
+      }
+
+      await this._updateVideoScriptAndNotify({
+        ...script,
+        segments: scriptWithAudio.segments,
+        status: 'audio-merged-into-videos',
+      });
+    } finally {
+      try {
+        await fs.promises.rm(tmpPath, { recursive: true, force: true });
+      } catch (error) {
+        console.error('Error deleting tmp directory:', error);
+      }
     }
   }
 
@@ -49,12 +109,12 @@ export class VideoScriptService {
         const cloudStorage = new CloudStorage();
         const { fileName } = await cloudStorage.uploadFile(
           process.env.CS_BUCKET_NAME!,
-          segment.localVideoPath!,
+          segment._localVideoPath!,
           `${script.scriptId}/${segment.index}.mp4`
         );
 
         segment.csVideoUrl = fileName;
-        segment.localVideoPath = undefined;
+        segment._localVideoPath = undefined;
       }
 
       await this._updateVideoScriptAndNotify({
@@ -64,7 +124,7 @@ export class VideoScriptService {
       });
     } finally {
       try {
-        await fs.promises.rmdir(tmpPath, { recursive: true });
+        await fs.promises.rm(tmpPath, { recursive: true, force: true });
       } catch (error) {
         console.error('Error deleting tmp directory:', error);
       }
@@ -80,12 +140,12 @@ export class VideoScriptService {
     for (const segment of synthesizedScript.segments!) {
       const { fileName } = await cloudStorage.uploadBuffer(
         process.env.CS_BUCKET_NAME!,
-        segment.audioContent!,
+        segment._audioContent!,
         `${script.scriptId}/${segment.index}.mp3`
       );
 
       segment.csAudioUrl = fileName;
-      segment.audioContent = undefined;
+      segment._audioContent = undefined;
     }
 
     await this._updateVideoScriptAndNotify({

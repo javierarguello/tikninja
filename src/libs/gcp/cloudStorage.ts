@@ -92,7 +92,7 @@ export class CloudStorage {
         fs.mkdirSync(downloadDir, { recursive: true });
       }
 
-      const destinationPath = path.join(downloadDir, fileName);
+      const destinationPath = path.join(downloadDir, path.basename(fileName));
 
       await file.download({
         destination: destinationPath,

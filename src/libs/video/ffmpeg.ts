@@ -12,6 +12,7 @@ export interface ISubtitleEmbedOptions {
   outputVideoFilename: string;
   subtitleLanguage?: string;
   audioContent?: Buffer;
+  localAudioPath?: string;
 }
 
 export class FFmpegProcessor {
@@ -171,16 +172,17 @@ export class FFmpegProcessor {
       options.tmpPath,
       `subtitles-${options.jobId}-${options.segmentIndex}.ass`
     );
-    const tempAudioPath = options.audioContent
-      ? path.join(
-          options.tmpPath,
-          `audio-${options.jobId}-${options.segmentIndex}.mp3`
-        )
-      : null;
 
     await fs.promises.writeFile(tempSubtitlePath, options.assContent, 'utf8');
-    if (tempAudioPath && options.audioContent) {
-      await fs.promises.writeFile(tempAudioPath, options.audioContent);
+
+    let localAudioPath = options.localAudioPath;
+    if (!localAudioPath && options.audioContent) {
+      localAudioPath = path.join(
+        options.tmpPath,
+        `audio-${options.jobId}-${options.segmentIndex}.mp3`
+      );
+
+      await fs.promises.writeFile(localAudioPath, options.audioContent);
     }
 
     const ffmpegArgs = [
@@ -189,7 +191,7 @@ export class FFmpegProcessor {
       '-i',
       inputVideoFilename,
       '-i',
-      tempAudioPath!,
+      localAudioPath!,
       '-y',
       '-map',
       '0:v',

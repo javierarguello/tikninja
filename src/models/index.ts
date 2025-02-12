@@ -12,7 +12,8 @@ export interface IVideoScript {
     | 'generated'
     | 'video-enriched'
     | 'audio-synthesized'
-    | 'videos-downloaded';
+    | 'videos-downloaded'
+    | 'audio-merged-into-videos';
 }
 
 export interface IVideoScriptSegment {
@@ -20,10 +21,13 @@ export interface IVideoScriptSegment {
   subtitles: string;
   keywords: string[];
   videoUrl?: string;
-  localVideoPath?: string;
   videoThumbnailUrl?: string;
-  audioContent?: Buffer;
   csAudioUrl?: string;
   csVideoUrl?: string;
   assContent?: string;
+
+  // private fields not returned in the response and not saved in the database
+  _localVideoPath?: string;
+  _localAudioPath?: string;
+  _audioContent?: Buffer;
 }
