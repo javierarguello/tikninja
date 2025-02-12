@@ -62,9 +62,10 @@ jobs:
             --platform managed \
             --allow-unauthenticated \
             --port 3000 \
-            --memory 512Mi \
+             --memory 2Gi \
             --cpu 1 \
             --max-instances 1 \
+            --timeout 3600 \
             --service-account ${{ secrets.GCP_PROJECT_SA_NAME }}
 
       - name: Set IAM Policy Binding
