@@ -13,6 +13,7 @@ const nextConfig: NextConfig = {
   },
   serverExternalPackages: [
     '@ffprobe-installer/ffprobe',
+    '@ffprobe-installer/linux-arm64',
     '@ffmpeg-installer/ffmpeg',
   ],
 };

@@ -1,6 +1,6 @@
 # syntax=docker.io/docker/dockerfile:1
 
-FROM node:20-alpine AS base
+FROM --platform=linux/arm64 node:20-alpine AS base
 
 # 1. Install dependencies only when needed
 FROM base AS deps
@@ -11,26 +11,22 @@ WORKDIR /app
 
 # Install dependencies based on the preferred package manager
 COPY package.json yarn.lock* package-lock.json* pnpm-lock.yaml* .npmrc* ./
-RUN \
-    if [ -f yarn.lock ]; then yarn --frozen-lockfile; \
-    elif [ -f package-lock.json ]; then npm ci; \
-    elif [ -f pnpm-lock.yaml ]; then corepack enable pnpm && pnpm i; \
-    else echo "Lockfile not found." && exit 1; \
-    fi
-
+# COPY package.json .npmrc* ./
+RUN npm ci
 
 # 2. Rebuild the source code only when needed
 FROM base AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
-COPY .env .env 
+COPY .env .env
 
 RUN npm run build
 
 # 3. Production image, copy all the files and run next
 FROM base AS runner
 WORKDIR /app
+RUN apk add --no-cache ffmpeg
 
 ENV NODE_ENV=production
 
