@@ -4,7 +4,7 @@ import { DatabaseService } from './DatabaseService';
 import { PubSubService } from './PubSubService';
 import { VideoScriptGeneratorService } from '../libs/video/VideoScriptGeneratorService';
 import { CloudStorage } from '../libs/gcp/cloudStorage';
-
+import * as fs from 'fs';
 export class VideoScriptService {
   constructor(
     private readonly db: DatabaseService = new DatabaseService(),
@@ -38,28 +38,36 @@ export class VideoScriptService {
   async downloadAllSegmentVideos(script: IVideoScript): Promise<void> {
     const videoScriptGeneratorService = new VideoScriptGeneratorService();
     const tmpPath = await videoScriptGeneratorService.setupTmpDir(script);
-    const downloadedScript =
-      await videoScriptGeneratorService.downloadAllSegmentVideos(
-        tmpPath,
-        script
-      );
+    try {
+      const downloadedScript =
+        await videoScriptGeneratorService.downloadAllSegmentVideos(
+          tmpPath,
+          script
+        );
 
-    for (const segment of downloadedScript.segments!) {
-      const cloudStorage = new CloudStorage();
-      const csVideoUrl = await cloudStorage.uploadFile(
-        process.env.CS_BUCKET_NAME!,
-        segment.localVideoPath!
-      );
+      for (const segment of downloadedScript.segments!) {
+        const cloudStorage = new CloudStorage();
+        const csVideoUrl = await cloudStorage.uploadFile(
+          process.env.CS_BUCKET_NAME!,
+          segment.localVideoPath!
+        );
 
-      segment.csVideoUrl = csVideoUrl;
-      segment.localVideoPath = undefined;
+        segment.csVideoUrl = csVideoUrl;
+        segment.localVideoPath = undefined;
+      }
+
+      await this._updateVideoScriptAndNotify({
+        ...script,
+        segments: downloadedScript.segments,
+        status: 'videos-downloaded',
+      });
+    } finally {
+      try {
+        await fs.promises.rmdir(tmpPath, { recursive: true });
+      } catch (error) {
+        console.error('Error deleting tmp directory:', error);
+      }
     }
-
-    await this._updateVideoScriptAndNotify({
-      ...script,
-      segments: downloadedScript.segments,
-      status: 'videos-downloaded',
-    });
   }
 
   async synthesizeAudioForAllSegments(script: IVideoScript): Promise<void> {
