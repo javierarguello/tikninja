@@ -35,6 +35,12 @@ export class DatabaseService {
     return { ...(doc.data() as IVideoScript), scriptId: doc.id };
   }
 
+  async getVideoScriptStatus(scriptId: string): Promise<string> {
+    const docRef = this.db.collection('video-scripts').doc(scriptId);
+    const doc = await docRef.get();
+    return doc.data()?.status || 'unknown';
+  }
+
   async createVideoScript(script: ICreatedVideoScript): Promise<IVideoScript> {
     try {
       const now = new Date();

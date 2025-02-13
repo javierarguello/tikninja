@@ -1,9 +1,9 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useToast } from '../../../hooks/use-toast';
 import { motion } from 'framer-motion';
-import { useVideo } from '../../../contexts/VideContext';
+import { IFrontScriptSegment, useVideo } from '../../../contexts/VideContext';
 import FirstStep from './FirstStep';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -15,15 +15,150 @@ import GeneratingWait from './GeneratingWait';
 import LastStep from './LastStep';
 
 const VideoCreationStepper: React.FC = () => {
-  const { currentStep, setCurrentStep, videoData, setVideoData } = useVideo();
+  const {
+    currentStep,
+    setCurrentStep,
+    videoData,
+    setVideoData,
+    isGeneratingScript,
+    setIsGeneratingScript,
+  } = useVideo();
   const { toast } = useToast();
 
+  useEffect(() => {
+    if (currentStep === 3) {
+      generateScript();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentStep]);
+
+  const generateScript = async () => {
+    setIsGeneratingScript(true);
+    try {
+      const response = await fetch('/api/video-scripts', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          title: videoData.title,
+          description: videoData.description,
+          language: videoData.language,
+          format: videoData.format,
+          voiceId: videoData.speaker,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to generate script');
+      }
+
+      const { scriptId } = (await response.json()) as { scriptId: string };
+
+      setVideoData({
+        ...videoData,
+        scriptId,
+        status: 'generating',
+      });
+
+      // Poll for status until it's complete or failed
+      while (true) {
+        const statusResponse = await fetch(
+          `/api/video-scripts/${scriptId}/status`
+        );
+        const { status } = (await statusResponse.json()) as {
+          status: string;
+          script?: string;
+        };
+
+        if (status === 'failed') {
+          throw new Error('Script generation failed');
+        }
+
+        if (
+          status !== 'pending' &&
+          status !== 'generating' &&
+          status !== 'unknown'
+        ) {
+          const scriptResponse = await fetch(`/api/video-scripts/${scriptId}`);
+          const { script } = (await scriptResponse.json()) as {
+            script: {
+              title: string;
+              description: string;
+              status: string;
+              segments: IFrontScriptSegment[];
+            };
+          };
+
+          setVideoData({
+            ...videoData,
+            segments: script.segments,
+            status: script.status as any,
+          });
+          setCurrentStep(4);
+          break;
+        }
+
+        // Wait for 2 seconds before next poll
+        await new Promise((resolve) => setTimeout(resolve, 3000));
+      }
+    } catch (error) {
+      console.error('Script generation error:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to generate script. Please try again.',
+        variant: 'destructive',
+      });
+      setCurrentStep(2); // Go back to voice selection
+    } finally {
+      setIsGeneratingScript(false);
+    }
+  };
+
   const handleNext = () => {
-    setCurrentStep(currentStep + 1);
+    if (validateStep()) {
+      setCurrentStep(currentStep + 1);
+    }
   };
 
   const handleBack = () => {
     setCurrentStep(currentStep - 1);
+  };
+
+  const validateStep = () => {
+    switch (currentStep) {
+      case 0:
+        if (!videoData.title.trim() || !videoData.language) {
+          toast({
+            title: 'Required Fields',
+            description: 'Please enter a title',
+            variant: 'destructive',
+          });
+          return false;
+        }
+        break;
+      case 1:
+        if (!videoData.format) {
+          toast({
+            title: 'Required Field',
+            description: 'Please select a video format',
+            variant: 'destructive',
+          });
+          return false;
+        }
+        break;
+      case 2:
+        if (!videoData.speaker) {
+          toast({
+            title: 'Required Field',
+            description: 'Please select a speaker voice',
+            variant: 'destructive',
+          });
+          return false;
+        }
+        break;
+    }
+    return true;
   };
 
   return (

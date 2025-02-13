@@ -29,7 +29,7 @@ export async function POST(request: Request) {
       status: 'pending',
     });
 
-    return NextResponse.json({ videoScript });
+    return NextResponse.json({ scriptId: videoScript.scriptId });
   } catch (error) {
     console.error('Error creating video script:', error);
     return NextResponse.json(

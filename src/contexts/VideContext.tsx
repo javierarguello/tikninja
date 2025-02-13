@@ -3,50 +3,53 @@ import { createContext, useContext, useState, ReactNode } from 'react';
 interface VideoContextType {
   currentStep: number;
   setCurrentStep: (step: number) => void;
-  videoData: VideoData;
-  setVideoData: (data: VideoData) => void;
-  videoHistory: VideoData[];
-  addToHistory: (video: VideoData) => void;
+  videoData: IFrontVideoScript;
+  setVideoData: (data: IFrontVideoScript) => void;
+  videoHistory: IFrontVideoScript[];
+  addToHistory: (video: IFrontVideoScript) => void;
+  isGeneratingScript: boolean;
+  setIsGeneratingScript: (value: boolean) => void;
 }
 
-interface VideoData {
-  id?: string;
+export interface IFrontVideoScript {
+  scriptId?: string;
   title: string;
   description: string;
   format: 'tiktok' | 'youtube' | '';
   language: string;
   speaker: string;
-  script: ScriptSegment[];
+  segments: IFrontScriptSegment[];
   status: 'draft' | 'generating' | 'completed';
   createdAt?: Date;
 }
 
-interface ScriptSegment {
-  text: string;
-  video: string;
-  duration: number;
+export interface IFrontScriptSegment {
+  subtitles: string;
+  videoUrl: string;
+  videoThumbnailUrl: string;
 }
 
 const VideoContext = createContext<VideoContextType | undefined>(undefined);
 
 export const VideoProvider = ({ children }: { children: ReactNode }) => {
   const [currentStep, setCurrentStep] = useState(0);
-  const [videoData, setVideoData] = useState<VideoData>({
+  const [videoData, setVideoData] = useState<IFrontVideoScript>({
     title: '',
     description: '',
     format: '',
-    language: 'en-US', // Set default language to English (US)
+    language: 'en-US',
     speaker: '',
-    script: [],
+    segments: [],
     status: 'draft',
   });
-  const [videoHistory, setVideoHistory] = useState<VideoData[]>([]);
+  const [videoHistory, setVideoHistory] = useState<IFrontVideoScript[]>([]);
+  const [isGeneratingScript, setIsGeneratingScript] = useState(false);
 
-  const addToHistory = (video: VideoData) => {
+  const addToHistory = (video: IFrontVideoScript) => {
     setVideoHistory((prev) => [
       {
         ...video,
-        id: crypto.randomUUID(),
+        scriptId: crypto.randomUUID(),
         createdAt: new Date(),
       },
       ...prev,
@@ -62,6 +65,8 @@ export const VideoProvider = ({ children }: { children: ReactNode }) => {
         setVideoData,
         videoHistory,
         addToHistory,
+        isGeneratingScript,
+        setIsGeneratingScript,
       }}
     >
       {children}

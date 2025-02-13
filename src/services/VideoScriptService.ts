@@ -11,6 +11,18 @@ export class VideoScriptService {
     private readonly pubSubService: PubSubService = new PubSubService()
   ) {}
 
+  async getVideoScript(scriptId: string): Promise<IVideoScript> {
+    const script = await this.db.getVideoScriptById(scriptId);
+    if (!script) {
+      throw new Error('Script not found');
+    }
+    return script;
+  }
+
+  async getVideoScriptStatus(scriptId: string): Promise<string> {
+    return this.db.getVideoScriptStatus(scriptId);
+  }
+
   async createVideoScript(script: ICreatedVideoScript): Promise<IVideoScript> {
     const videoScript = await this.db.createVideoScript(script);
     await this.pubSubService.publishVideoScriptToPubSub(videoScript);
@@ -25,9 +37,9 @@ export class VideoScriptService {
     }
 
     if (script.status === 'pending') {
-      await this.generateScript(script);
+      await this.generateScript(script, { triggerNextStep: true });
     } else if (script.status === 'generated') {
-      await this.enrichScriptWithVideos(script);
+      await this.enrichScriptWithVideos(script, { triggerNextStep: false });
     } else if (script.status === 'video-enriched') {
       await this.synthesizeAudioForAllSegments(script);
     } else if (script.status === 'audio-synthesized') {
@@ -155,19 +167,27 @@ export class VideoScriptService {
     });
   }
 
-  async enrichScriptWithVideos(script: IVideoScript): Promise<void> {
+  async enrichScriptWithVideos(
+    script: IVideoScript,
+    options: { triggerNextStep?: boolean } = { triggerNextStep: false }
+  ): Promise<void> {
     const videoScriptGeneratorService = new VideoScriptGeneratorService();
     const generatedScript =
       await videoScriptGeneratorService.enrichScriptWithVideos(script);
 
-    await this._updateVideoScriptAndNotify({
-      ...script,
-      segments: generatedScript.segments,
-      status: 'video-enriched',
-    });
+    if (options?.triggerNextStep) {
+      await this._updateVideoScriptAndNotify({
+        ...script,
+        segments: generatedScript.segments,
+        status: 'video-enriched',
+      });
+    }
   }
 
-  async generateScript(script: IVideoScript): Promise<void> {
+  async generateScript(
+    script: IVideoScript,
+    options: { triggerNextStep?: boolean } = { triggerNextStep: false }
+  ): Promise<void> {
     const videoScriptGeneratorService = new VideoScriptGeneratorService();
     const generatedScript =
       await videoScriptGeneratorService.generateVideoScript({
@@ -175,11 +195,13 @@ export class VideoScriptService {
         description: script.description,
       });
 
-    await this._updateVideoScriptAndNotify({
-      ...script,
-      segments: generatedScript.segments,
-      status: 'generated',
-    });
+    if (options?.triggerNextStep) {
+      await this._updateVideoScriptAndNotify({
+        ...script,
+        segments: generatedScript.segments,
+        status: 'generated',
+      });
+    }
   }
 
   private async _updateVideoScriptAndNotify(
