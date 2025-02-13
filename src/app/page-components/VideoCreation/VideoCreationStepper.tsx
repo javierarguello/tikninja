@@ -11,7 +11,7 @@ import { motion } from 'framer-motion';
 import { steps } from './videoCreationModels';
 import SecondStep from './SecondStep';
 import ThirdStep from './ThirdStep';
-import GeneratingWait from "./GeneratingWait";
+import GeneratingWait from './GeneratingWait';
 
 const VideoCreationStepper: React.FC = () => {
   const { currentStep, setCurrentStep, videoData, setVideoData } = useVideo();
