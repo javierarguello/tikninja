@@ -11,6 +11,7 @@ import { motion } from 'framer-motion';
 import { steps } from './videoCreationModels';
 import SecondStep from './SecondStep';
 import ThirdStep from './ThirdStep';
+import GeneratingWait from "./GeneratingWait";
 
 const VideoCreationStepper: React.FC = () => {
   const { currentStep, setCurrentStep, videoData, setVideoData } = useVideo();
@@ -54,6 +55,7 @@ const VideoCreationStepper: React.FC = () => {
               {currentStep === 0 && <FirstStep />}
               {currentStep === 1 && <SecondStep />}
               {currentStep === 2 && <ThirdStep />}
+              {currentStep === 3 && <GeneratingWait />}
             </div>
 
             <div className="flex justify-between mt-8">

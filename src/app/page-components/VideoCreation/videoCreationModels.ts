@@ -2,6 +2,7 @@ export const steps = [
   'Basic Info',
   'Format Selection',
   'Voice Selection',
+  'Generating Script',
   'Script & Video',
 ];
 
