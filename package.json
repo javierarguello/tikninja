@@ -12,6 +12,7 @@
     "@google-cloud/pubsub": "^4.10.0",
     "@pulumi/gcp": "^8.18.0",
     "@pulumi/pulumi": "^3.149.0",
+    "@radix-ui/react-aspect-ratio": "^1.1.2",
     "@radix-ui/react-radio-group": "^1.2.3",
     "@radix-ui/react-select": "^2.1.6",
     "@radix-ui/react-slot": "^1.1.2",

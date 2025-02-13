@@ -5,7 +5,7 @@ import { useVideo } from '../../../contexts/VideContext';
 import { Wand2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 
-const SecondStep: React.FC = () => {
+const GeneratingWait: React.FC = () => {
   return (
     <div className="flex flex-col items-center justify-center py-12 space-y-6 text-center">
       <motion.div
@@ -25,4 +25,4 @@ const SecondStep: React.FC = () => {
   );
 };
 
-export default SecondStep;
+export default GeneratingWait;
