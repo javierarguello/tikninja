@@ -69,7 +69,7 @@ jobs:
           docker tag $IMAGE_URI $REGISTRY_NAME/$PROJECT_ID/$REGISTRY_WORKER_REPO_NAME/$WORKER_IMAGE_NAME:latest
           docker push $REGISTRY_NAME/$PROJECT_ID/$REGISTRY_WORKER_REPO_NAME/$WORKER_IMAGE_NAME:latest
 
-      - name: Create Worker to Cloud Run Job
+      - name: Deploy Worker to Cloud Run Job
         run: |
           WORKER_IMAGE_URI=$REGISTRY_NAME/$PROJECT_ID/$REGISTRY_WORKER_REPO_NAME/$WORKER_IMAGE_NAME:latest
           gcloud beta run jobs deploy ${{ env.WORKER_IMAGE_NAME }} \
@@ -82,6 +82,7 @@ jobs:
             --task-timeout 3600s \
             --service-account ${{ secrets.GCP_PROJECT_SA_NAME }} \
             --set-env-vars "NODE_ENV=production" \
+            --command "node dist/index.js" \
             --quiet
 
       - name: Deploy App to Cloud Run

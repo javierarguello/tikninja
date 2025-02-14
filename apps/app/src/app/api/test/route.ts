@@ -17,7 +17,7 @@ export async function POST(request: Request) {
     overrides: {
       containerOverrides: [
         {
-          args: ['dist/index.js', '--scriptId', body.scriptId],
+          args: ['--scriptId', body.scriptId],
         },
       ],
     },
