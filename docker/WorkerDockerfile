@@ -1,0 +1,36 @@
+# Stage 1: Builder - Install dependencies and build the worker project
+FROM node:20-alpine AS builder
+WORKDIR /app
+
+# Copy root-level files and workspace folders
+COPY package*.json ./
+COPY tsconfig.base.json ./
+COPY eslint.config.mjs ./
+COPY packages ./packages
+COPY apps ./apps
+
+# Install dependencies using the lock file
+RUN npm ci
+
+# Build the worker project (this will compile worker.ts to dist/worker.js)
+RUN npm run build:worker
+
+# Stage 2: Runner - Prepare the production image
+FROM node:20-alpine AS runner
+WORKDIR /app
+RUN apk add --no-cache fontconfig
+RUN apk add --no-cache ffmpeg
+
+# Copy the entire built monorepo from the builder stage.
+# Alternatively, you can copy only the necessary parts.
+COPY --from=builder /app/apps/worker .
+COPY --from=builder /app/apps/app/public/fonts ./ffmpeg_fonts
+
+# Set working directory to the worker project
+WORKDIR /app
+
+# Set environment variable (if needed)
+ENV NODE_ENV=production
+
+# Execute the worker. This runs the compiled worker from the dist folder.
+CMD ["node", "dist/index.js"]

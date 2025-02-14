@@ -49,7 +49,7 @@ jobs:
       - name: Build and Push Docker image
         run: |
           IMAGE_URI=$REGISTRY_NAME/$PROJECT_ID/$REGISTRY_REPO_NAME/$IMAGE_NAME:$GITHUB_SHA
-          docker build -f NextJSDockerfile -t $IMAGE_URI .
+          docker build -f ./docker/NextJSDockerfile -t $IMAGE_URI .
           docker tag $IMAGE_URI $REGISTRY_NAME/$PROJECT_ID/$REGISTRY_REPO_NAME/$IMAGE_NAME:latest
           docker push $REGISTRY_NAME/$PROJECT_ID/$REGISTRY_REPO_NAME/$IMAGE_NAME:latest
 
