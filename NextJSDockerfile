@@ -9,43 +9,45 @@ RUN apk add --no-cache libc6-compat
 
 WORKDIR /app
 
-COPY package.json yarn.lock* package-lock.json* pnpm-lock.yaml* .npmrc* ./
-RUN npm install --omit=dev
+COPY package*.json ./
+COPY tsconfig.base.json ./
+COPY eslint.config.mjs ./
+COPY packages ./packages
+COPY apps ./apps
+
+RUN npm ci
 
 # 2. Rebuild the source code only when needed
 FROM base AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
-COPY .env .env
+COPY ./apps/app/.env .env
 ENV NEXT_TELEMETRY_DISABLED 1
 
-RUN npm run build
+RUN npm run build:app
 
 # 3. Production image, copy all the files and run next
 FROM base AS runner
 WORKDIR /app
-RUN apk add --no-cache fontconfig
-RUN apk add --no-cache ffmpeg
-
-ENV NODE_ENV=production
+# RUN apk add --no-cache fontconfig
+# RUN apk add --no-cache ffmpeg
 
 RUN addgroup -g 1001 -S nodejs
 RUN adduser -S nextjs -u 1001
 
-COPY --from=builder /app/public ./public
-COPY --from=builder /app/ffmpeg_fonts ./ffmpeg_fonts
-
-# Automatically leverage output traces to reduce image size
-# https://nextjs.org/docs/advanced-features/output-file-tracing
-COPY --from=builder --chown=nextjs:nodejs /app/.env ./.env
-COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
-COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+COPY --from=builder /app/apps/app/public ./public
+COPY --from=builder /app/apps/app/ffmpeg_fonts ./ffmpeg_fonts
+COPY --from=builder --chown=nextjs:nodejs /app/apps/app/.env ./.env
+COPY --from=builder --chown=nextjs:nodejs /app/apps/app/.next/standalone/node_modules ./node_modules
+COPY --from=builder --chown=nextjs:nodejs /app/apps/app/.next/standalone/apps/app ./
+COPY --from=builder --chown=nextjs:nodejs /app/apps/app/.next/static ./.next/static
 
 USER nextjs
 
 EXPOSE 3000
 
 ENV PORT=3000
+ENV NODE_ENV=production
 
 CMD HOSTNAME="0.0.0.0" node server.js
