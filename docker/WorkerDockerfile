@@ -29,8 +29,11 @@ COPY --from=builder /app/apps/app/public/fonts ./ffmpeg_fonts
 # Set working directory to the worker project
 WORKDIR /app
 
+# Make the entrypoint script executable
+RUN chmod +x ./entrypoint.sh
+
 # Set environment variable (if needed)
 ENV NODE_ENV=production
 
 # Execute the worker. This runs the compiled worker from the dist folder.
-CMD ["node", "dist/index.js"]
+CMD ["./entrypoint.sh"]
