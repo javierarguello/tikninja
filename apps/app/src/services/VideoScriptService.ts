@@ -175,13 +175,14 @@ export class VideoScriptService {
     const generatedScript =
       await videoScriptGeneratorService.enrichScriptWithVideos(script);
 
-    if (options?.triggerNextStep) {
-      await this._updateVideoScriptAndNotify({
+    await this._updateVideoScriptAndNotify(
+      {
         ...script,
         segments: generatedScript.segments,
         status: 'video-enriched',
-      });
-    }
+      },
+      options
+    );
   }
 
   async generateScript(
@@ -195,20 +196,24 @@ export class VideoScriptService {
         description: script.description,
       });
 
-    if (options?.triggerNextStep) {
-      await this._updateVideoScriptAndNotify({
+    await this._updateVideoScriptAndNotify(
+      {
         ...script,
         segments: generatedScript.segments,
         status: 'generated',
-      });
-    }
+      },
+      options
+    );
   }
 
   private async _updateVideoScriptAndNotify(
-    script: IVideoScript
+    script: IVideoScript,
+    options: { triggerNextStep?: boolean } = { triggerNextStep: false }
   ): Promise<void> {
     await this.db.updateVideoScript(script.scriptId, script);
 
-    this.pubSubService.publishVideoScriptToPubSub(script);
+    if (options?.triggerNextStep) {
+      this.pubSubService.publishVideoScriptToPubSub(script);
+    }
   }
 }

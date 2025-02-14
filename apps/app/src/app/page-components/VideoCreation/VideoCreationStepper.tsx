@@ -14,7 +14,7 @@ import ThirdStep from './ThirdStep';
 import GeneratingWait from './GeneratingWait';
 import LastStep from './LastStep';
 
-const VideoCreationStepper: React.FC = () => {
+const VideoCreationStepper: React.FC = ({}) => {
   const {
     currentStep,
     setCurrentStep,
@@ -77,7 +77,7 @@ const VideoCreationStepper: React.FC = () => {
 
         if (
           status !== 'pending' &&
-          status !== 'generating' &&
+          status !== 'generated' &&
           status !== 'unknown'
         ) {
           const scriptResponse = await fetch(`/api/video-scripts/${scriptId}`);
