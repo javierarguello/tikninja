@@ -66,7 +66,22 @@ jobs:
           docker tag $IMAGE_URI $REGISTRY_NAME/$PROJECT_ID/$REGISTRY_WORKER_REPO_NAME/$WORKER_IMAGE_NAME:latest
           docker push $REGISTRY_NAME/$PROJECT_ID/$REGISTRY_WORKER_REPO_NAME/$WORKER_IMAGE_NAME:latest
 
-      - name: Deploy to Cloud Run
+      - name: Create Worker to Cloud Run Job
+        run: |
+          WORKER_IMAGE_URI=$REGISTRY_NAME/$PROJECT_ID/$REGISTRY_WORKER_REPO_NAME/$WORKER_IMAGE_NAME:latest
+          gcloud run jobs create ${{ env.WORKER_IMAGE_NAME }} \
+            --image $WORKER_IMAGE_URI \
+            --region ${{ env.REGION }} \
+            --tasks 3 \
+            --memory 2048Mi \
+            --cpu 2 \
+            --max-retries 3 \
+            --task-timeout 3600s \
+            --service-account ${{ secrets.GCP_PROJECT_SA_NAME }} \
+            --set-env-vars "NODE_ENV=production" \
+            --quiet
+
+      - name: Deploy App to Cloud Run
         run: |
           IMAGE_URI=$REGISTRY_NAME/$PROJECT_ID/$REGISTRY_APP_REPO_NAME/$APP_IMAGE_NAME:latest
           gcloud run deploy ${{ env.APP_IMAGE_NAME }} \
