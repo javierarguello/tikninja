@@ -82,7 +82,6 @@ jobs:
             --task-timeout 3600s \
             --service-account ${{ secrets.GCP_PROJECT_SA_NAME }} \
             --set-env-vars "NODE_ENV=production" \
-            --command "./entrypoint.sh" \
             --quiet
 
       - name: Deploy App to Cloud Run
