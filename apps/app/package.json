@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@google-cloud/pubsub": "^4.10.0",
+    "@google-cloud/run": "^1.5.0",
     "@pulumi/gcp": "^8.18.0",
     "@pulumi/pulumi": "^3.149.0",
     "@radix-ui/react-aspect-ratio": "^1.1.2",

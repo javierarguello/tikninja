@@ -7,8 +7,7 @@ const worker = async () => {
   const fontPath = './ffmpeg_fonts/Poppins-Black.ttf';
 
   if (!fs.existsSync(fontPath)) {
-    console.error(`Font file not found: ${fontPath}`);
-    process.exit(1);
+    console.warn(`Font file not found: ${fontPath}`);
   }
 
   console.log('Worker started');

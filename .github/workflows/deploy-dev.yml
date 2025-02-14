@@ -69,7 +69,7 @@ jobs:
       - name: Create Worker to Cloud Run Job
         run: |
           WORKER_IMAGE_URI=$REGISTRY_NAME/$PROJECT_ID/$REGISTRY_WORKER_REPO_NAME/$WORKER_IMAGE_NAME:latest
-          gcloud run jobs create ${{ env.WORKER_IMAGE_NAME }} \
+          gcloud beta run jobs deploy ${{ env.WORKER_IMAGE_NAME }} \
             --image $WORKER_IMAGE_URI \
             --region ${{ env.REGION }} \
             --tasks 3 \
