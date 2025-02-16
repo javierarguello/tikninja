@@ -1,0 +1,35 @@
+{
+  "name": "@tikninja-app/video-scripts",
+  "version": "1.0.0",
+  "type": "module",
+  "files": [
+    "dist",
+    "src",
+    "!tsconfig.tsbuildinfo",
+    "!tsconfig.json"
+  ],
+  "exports": {
+    ".": "./dist/index.js",
+    "./package.json": "./package.json"
+  },
+  "scripts": {
+    "build": "tsc --build"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "devDependencies": {
+    "@eslint/eslintrc": "^3",
+    "@google-cloud/text-to-speech": "^5.8.0",
+    "@types/fluent-ffmpeg": "^2.1.27",
+    "@types/node": "^20",
+    "axios": "^1.7.9",
+    "dotenv": "^16.4.7",
+    "eslint": "^9",
+    "eslint-config-next": "15.1.7",
+    "fluent-ffmpeg": "^2.1.3",
+    "typescript": "^5",
+    "uuid": "^11.0.5"
+  }
+}

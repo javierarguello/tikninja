@@ -11,14 +11,9 @@
     "outDir": "dist",
     "rootDir": "src",
     "paths": {
-      "@/*": ["./apps/worker/src/*"]
+      "@/*": ["./packages/video-scripts/src/*"]
     }
   },
   "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist"],
-  "references": [
-    {
-      "path": "../../packages/video-scripts"
-    }
-  ]
+  "exclude": ["node_modules", "dist"]
 }

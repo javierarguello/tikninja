@@ -10,7 +10,7 @@
     "build": "npm run build --workspaces",
     "build:app": "npm run build --workspace=apps/app",
     "build:worker": "npm run build --workspace=apps/worker",
-    "start:app": "npm run start --workspace=apps/app",
+    "build:video-scripts": "npm run build --workspace=packages/video-scripts",
     "start:worker": "npm run start --workspace=apps/worker",
     "dev:app": "npm run dev --workspace=apps/app"
   }

@@ -2,8 +2,13 @@
   "compilerOptions": {
     "target": "ES2017",
     "module": "CommonJS",
-    "strict": true,
+    "composite": true,
+    "declaration": true,
+    "declarationMap": true,
     "esModuleInterop": true,
+    "sourceMap": true,
+    "strict": true,
+    "moduleResolution": "bundler",
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "baseUrl": "."
